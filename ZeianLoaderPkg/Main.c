@@ -6,6 +6,7 @@
 #include  <Protocol/SimpleFileSystem.h>
 #include  <Protocol/DiskIo2.h>
 #include  <Protocol/BlockIo.h>
+#include  <Guid/FileInfo.h>
 
 struct MemoryMap {
   UINTN buffer_size;
@@ -17,9 +18,9 @@ struct MemoryMap {
 };
 
 EFI_STATUS GetMemoryMap(struct MemoryMap* map) {
-  // if (map->buffer == NULL) {
-  //   return EFI_BUFFER_TOO_SMALL;
-  // }
+  if (map->buffer == NULL) {
+    return EFI_BUFFER_TOO_SMALL;
+  }
 
   map->map_size = map->buffer_size;
   return gBS->GetMemoryMap(
@@ -161,6 +162,37 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_tab
   //操作インターフェースに用意されているClose関数でファイルを閉じる
   memmap_file->Close(memmap_file);
 
+  EFI_FILE_PROTOCOL* kernel_file;
+  //カーネルファイルをオープン
+  root_dir->Open(
+      root_dir, &kernel_file, L"\\kernel.elf",
+      EFI_FILE_MODE_READ, 0);
+
+  // ファイル情報を格納するためのバッファサイズを指定
+  // - `EFI_FILE_INFO` 構造体のサイズに加えてファイル名を格納できるサイズを足している
+  UINTN file_info_size = sizeof(EFI_FILE_INFO) + sizeof(CHAR16) * 12;
+  // 実際にファイル情報を読み取る（展開する）ためのバッファを定義（スタック上）
+  UINT8 file_info_buffer[file_info_size];
+  //取得したファイル情報をバッファに書き込む
+  kernel_file->GetInfo(
+      kernel_file, &gEfiFileInfoGuid,
+      &file_info_size, file_info_buffer);
+
+  EFI_FILE_INFO* file_info = (EFI_FILE_INFO*)file_info_buffer;
+
+  //カーネルのサイズを取得
+  UINTN kernel_file_size = file_info->FileSize;
+
+  //カーネルの読み込み先アドレスを指定
+  EFI_PHYSICAL_ADDRESS kernel_base_addr = 0x100000;
+  //カーネルサイズ分のメモリを確保
+  gBS->AllocatePages(
+      AllocateAddress, EfiLoaderData,
+      (kernel_file_size + 0xfff) / 0x1000, &kernel_base_addr);
+
+  //カーネルをメモリにロード
+  kernel_file->Read(kernel_file, &kernel_file_size, (VOID*)kernel_base_addr);
+  Print(L"Kernel: 0x%0lx (%lu bytes)\n", kernel_base_addr, kernel_file_size);
   // プログラムを無限ループで停止（UEFIのアプリケーションは終了しない）
   while (1);
 
