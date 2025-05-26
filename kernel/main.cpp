@@ -14,6 +14,24 @@ struct PixelColor {
   uint8_t r, g, b;
 };
 
+const uint8_t kFontA[16]{
+  0b00000000,
+  0b00011000,
+  0b00011000,
+  0b00011000,
+  0b00011000,
+  0b00100100,
+  0b00100100,
+  0b00100100,
+  0b01111110,
+  0b01000010,
+  0b01000010,
+  0b01000010,
+  0b11100111,
+  0b00000000,
+  0b00000000,
+};
+
 /** WritePixelは1つの点を描画します．
  * @retval 0   成功
  * @retval 非0 失敗
@@ -38,7 +56,19 @@ int WritePixel(const FrameBufferConfig& config,
   return 0;
 }
 // #@@range_end(write_pixel)
-
+void WriteAscii(const FrameBufferConfig& config,int x, int y,char c,const PixelColor& color){
+  if(c != 'A'){
+    return;
+  }
+  for(int dy=0;dy<16;++dy){
+    for(int dx=0;dx<8;++dx){
+      //dyをdxの位置までビットシフトして先頭ビットが1ならピクセルを描画
+      if((kFontA[dy]<<dx)&0b10000000){
+        WritePixel(config,x+dx,y+dy,color);
+      }
+    }
+  }
+}
 // #@@range_begin(call_write_pixel)
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   for (int x = 0; x < frame_buffer_config.horizontal_resolution; ++x) {
@@ -51,6 +81,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
       WritePixel(frame_buffer_config, 100 + x, 100 + y, {0, 255, 0});
     }
   }
+  WriteAscii(frame_buffer_config,50,50,'A',{0,0,0});
   while (1) __asm__("hlt");
 }
 // #@@range_end(call_write_pixel)
