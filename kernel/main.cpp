@@ -40,13 +40,13 @@ int WritePixel(const FrameBufferConfig& config,
 }
 // #@@range_end(write_pixel)
 void WriteAscii(const FrameBufferConfig& config,int x, int y,char c,const PixelColor& color){
-  if(c != 'A'){
-    return;
-  }
+  // if(c != 'A'){
+  //   return;
+  // }
   for(int dy=0;dy<16;++dy){
     for(int dx=0;dx<8;++dx){
       //dyをdxの位置までビットシフトして先頭ビットが1ならピクセルを描画
-      const uint8_t* font=GetFont('a');
+      const uint8_t* font=GetFont(c);
       if((font[dy]<<dx)&0b10000000){
         WritePixel(config,x+dx,y+dy,color);
       }
@@ -65,7 +65,10 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
       WritePixel(frame_buffer_config, 100 + x, 100 + y, {0, 255, 0});
     }
   }
-  WriteAscii(frame_buffer_config,50,50,'A',{0,0,0});
+  int i=0;
+  for (char c = '!';c < '~';c++,i++){
+    WriteAscii(frame_buffer_config,8*i,50,c,{0,0,0});
+  }
   while (1) __asm__("hlt");
 }
 // #@@range_end(call_write_pixel)
