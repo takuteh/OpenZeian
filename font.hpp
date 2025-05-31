@@ -3,6 +3,6 @@
 
 #include <cstdint>
 
-const uint8_t* GetFont(int i);
+const uint8_t* GetFont(char c);
 
 #endif

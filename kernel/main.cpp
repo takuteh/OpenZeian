@@ -46,7 +46,7 @@ void WriteAscii(const FrameBufferConfig& config,int x, int y,char c,const PixelC
   for(int dy=0;dy<16;++dy){
     for(int dx=0;dx<8;++dx){
       //dyをdxの位置までビットシフトして先頭ビットが1ならピクセルを描画
-      const uint8_t* font=GetFont(65);
+      const uint8_t* font=GetFont('a');
       if((font[dy]<<dx)&0b10000000){
         WritePixel(config,x+dx,y+dy,color);
       }
