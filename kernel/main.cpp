@@ -15,24 +15,6 @@ struct PixelColor {
   uint8_t r, g, b;
 };
 
-const uint8_t kFontA[16]{
-  0b00000000,
-  0b00011000,
-  0b00011000,
-  0b00011000,
-  0b00011000,
-  0b00100100,
-  0b00100100,
-  0b00100100,
-  0b01111110,
-  0b01000010,
-  0b01000010,
-  0b01000010,
-  0b11100111,
-  0b00000000,
-  0b00000000,
-};
-
 /** WritePixelは1つの点を描画します．
  * @retval 0   成功
  * @retval 非0 失敗
@@ -64,7 +46,7 @@ void WriteAscii(const FrameBufferConfig& config,int x, int y,char c,const PixelC
   for(int dy=0;dy<16;++dy){
     for(int dx=0;dx<8;++dx){
       //dyをdxの位置までビットシフトして先頭ビットが1ならピクセルを描画
-      const uint8_t* font=GetFont(1);
+      const uint8_t* font=GetFont(65);
       if((font[dy]<<dx)&0b10000000){
         WritePixel(config,x+dx,y+dy,color);
       }
