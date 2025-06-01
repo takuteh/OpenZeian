@@ -9,7 +9,7 @@
 
 #include "frame_buffer_config.hpp"
 #include "../font.hpp"
-
+static char buf[10][10];
 // #@@range_begin(write_pixel)
 struct PixelColor {
   uint8_t r, g, b;
@@ -58,11 +58,12 @@ void WriteAscii(const FrameBufferConfig& config,int x, int y,char c,const PixelC
 void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
   int cursor_column=0;
   int cursor_row=0;
-  int maxColumns=10;
-  int maxRows=10;
-  for(*s;*s!='\0';s++){
-    if(*s=='\n'||cursor_column==maxColumns){//改行文字か端まで行ったら改行
-      if(cursor_row < maxRows){
+  int maxColumns=10;//最大列
+  int maxRows=10;//最大行
+  //char buf[maxRows][maxColumns+1];
+  for(*s;*s!='\0';s++){//入力の終端までループ
+    if(*s=='\n'||cursor_column==maxColumns){//改行文字か端まで行ったら
+      if(cursor_row < maxRows){//最大列でなければ改行
         cursor_column=0;
         cursor_row++;
       }
@@ -70,6 +71,7 @@ void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
     
     //端までいかなければカーソルを進める
     WriteAscii(frame_buffer_conf,8*cursor_column,16*cursor_row,*s,{0,0,0});
+    buf[cursor_row][cursor_column]=*s;
     cursor_column++;
   }
 }
@@ -87,7 +89,8 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
     }
   }
   int i=0;
-  PutString("afghahadfhhgsgjsddfhs\n afga\n asdtga",frame_buffer_config);
+  PutString("12345678910\n afga\n asdtga",frame_buffer_config);
+  WriteAscii(frame_buffer_config,8*10,16*10,buf[0][3],{0,0,0});
   // for (char c = '!';c < '~';c++,i++){
   //   WriteAscii(frame_buffer_config,8*i,50,c,{0,0,0});
   // }
