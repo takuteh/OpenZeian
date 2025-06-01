@@ -39,6 +39,7 @@ int WritePixel(const FrameBufferConfig& config,
   return 0;
 }
 // #@@range_end(write_pixel)
+
 void WriteAscii(const FrameBufferConfig& config,int x, int y,char c,const PixelColor& color){
   // if(c != 'A'){
   //   return;
@@ -53,6 +54,26 @@ void WriteAscii(const FrameBufferConfig& config,int x, int y,char c,const PixelC
     }
   }
 }
+
+void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
+  int cursor_column=0;
+  int cursor_row=0;
+  int maxColumns=10;
+  int maxRows=10;
+  for(*s;*s!='\0';s++){
+    if(*s=='\n'||cursor_column==maxColumns){//改行文字か端まで行ったら改行
+      if(cursor_row < maxRows){
+        cursor_column=0;
+        cursor_row++;
+      }
+    }
+    
+    //端までいかなければカーソルを進める
+    WriteAscii(frame_buffer_conf,8*cursor_column,16*cursor_row,*s,{0,0,0});
+    cursor_column++;
+  }
+}
+
 // #@@range_begin(call_write_pixel)
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   for (int x = 0; x < frame_buffer_config.horizontal_resolution; ++x) {
@@ -66,9 +87,10 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
     }
   }
   int i=0;
-  for (char c = '!';c < '~';c++,i++){
-    WriteAscii(frame_buffer_config,8*i,50,c,{0,0,0});
-  }
+  PutString("afghahadfhhgsgjsddfhs\n afga\n asdtga",frame_buffer_config);
+  // for (char c = '!';c < '~';c++,i++){
+  //   WriteAscii(frame_buffer_config,8*i,50,c,{0,0,0});
+  // }
   while (1) __asm__("hlt");
 }
 // #@@range_end(call_write_pixel)
