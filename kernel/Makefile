@@ -15,7 +15,7 @@ clean:
 	rm -rf *.o
 
 kernel.elf: $(OBJS) Makefile
-	ld.lld $(LDFLAGS) -o kernel.elf $(OBJS)
+	ld.lld $(LDFLAGS) -o kernel.elf $(OBJS) 
 
 %.o: %.cpp Makefile
 	clang++ $(INCDIR) $(CPPFLAGS) $(CXXFLAGS) -c $< 

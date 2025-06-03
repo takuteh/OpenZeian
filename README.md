@@ -1,18 +1,23 @@
 # 本コミットについて (osbook_day05d)
 
 ## 概要
-入力された文字を行と列の2次元要素の配列にバッファとして格納できるようにした．また，テストで0行3列目に表示する文字をバッファに格納し，そのバッファの内容を10行10列目に表示している．
+
+WriteString 関数を追加し，文字列を表示できるようにした．バッファの内容を表示すると，入力していないはずの文字コードが出力されてしまう問題が発生したため，スクロール機能を追加しようと試みていたが，一旦コメントアウトして断念した．(kernel/main.cpp 77~85 行目)
 
 ## 手順
+
 1.各プログラムをコンパイル  
-なぜか-fno-stack-protectorオプションをつけないとmakeが通らない
+なぜか`-fno-stack-protector`オプションをつけないと make が通らない
+
 ```
 g++ -c font.cpp -o font.o
 g++ -fno-stack-protector -c main.cpp -o main.o -I../ZeianLoaderPkg/include/
 ```
-2.makefileでfont.o hankaku.o main.oをリンクしてコンパイル  
 
-3.edk2以下に移動し，ビルド後実行
+2.makefile で`font.o`,`hankaku.o`,`main.o`をリンクしてコンパイル
+
+3.edk2 以下に移動し，ビルド後実行
+
 ```
 cd ~/edk2
 build
