@@ -9,8 +9,8 @@
 
 #include "frame_buffer_config.hpp"
 #include "../font.hpp"
-static char buf[10][10]={};
-static char test[100]={};
+static char buf[11][11]={};
+
 // #@@range_begin(write_pixel)
 struct PixelColor {
   uint8_t r, g, b;
@@ -69,36 +69,33 @@ void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
   int cursor_row=0;
   int maxColumns=10;//最大列(x)
   int maxRows=10;//最大行(y)
-  int n=0;
+
   //char buf[maxRows][maxColumns+1];
-  for(*s;*s!='\0';s++){//入力の終端までループ
-    if(*s=='\n'||cursor_column==maxColumns){//改行文字か端まで行ったら
-      //WriteString(frame_buffer_conf,0,0,buf[0],{0,0,0});
-      //WriteAscii(frame_buffer_conf,0,0,buf[0][11],{0,0,0});
-       if(cursor_row < maxRows){//最大列でなければ改行
+  while(*s!='\0'){
+    if(*s=='\n'||cursor_column==maxColumns){//改行文字か端まで行ったら      
         buf[cursor_row][cursor_column]='\0';
          cursor_column=0;
          cursor_row++;
-       }//else{//最大列までいった場合スクロール
-      //   cursor_row=0;
-      //   for(int row=0 ; row<1;row++){
-      //     cursor_column=0;
-      //     //memcpy(buf[row],buf[row+1],maxColumns);
-      //     WriteString(frame_buffer_conf,cursor_column,cursor_row,buf[0],{0,0,0});
-      //     cursor_row++;
-      //   }
-      // }
-    }
-    
+    }else{
     //端までいかなければカーソルを進める
-    //WriteAscii(frame_buffer_conf,8*cursor_column,16*cursor_row,*s,{0,0,0});
-    //test[n]='0'+cursor_row;
-    n++;
+    WriteAscii(frame_buffer_conf,8*cursor_column,16*cursor_row,*s,{0,0,0});
     buf[cursor_row][cursor_column]=*s;
     cursor_column++;
-  }
-}
+    }
 
+    if(cursor_row > maxRows){//最大列までいった場合スクロール
+    for (int y = 0; y < 16 * maxRows; ++y) {//一度画面をフラッシュ
+      for (int x = 0; x < 8 * maxColumns; ++x) {
+        WritePixel(frame_buffer_conf, x, y, {255, 0, 0});
+      }
+    }
+    for(int i=0;i<=maxRows;i++){//再描画
+      WriteString(frame_buffer_conf,0,i,buf[i+1],{0,0,0});
+    }
+  }
+    s++;
+}
+}
 // #@@range_begin(call_write_pixel)
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   for (int x = 0; x < frame_buffer_config.horizontal_resolution; ++x) {
@@ -112,10 +109,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
     }
   }
   int i=0;
-  PutString("aasdd\n afga\nasdtga\n gfhjhk\n fdhj\n dfgs\n adfg\n adfha\n adfha",frame_buffer_config);
-        for(int row=0 ; row<10;row++){
-          WriteString(frame_buffer_config,0,row,buf[row],{0,0,0});
-        }
+  PutString("1aasdd\n 2afga\n 3asdtga\n 4gfhjhk\n 5fdhj\n 6dfgs\n 7adfg\n 8adfha\n 9adfha\n 10sdagag\n 11dfgaf\n 12dfga",frame_buffer_config);
   while (1) __asm__("hlt");
 }
 // #@@range_end(call_write_pixel)
