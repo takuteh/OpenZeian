@@ -10,6 +10,7 @@
 #include "frame_buffer_config.hpp"
 #include "../font.hpp"
 static char buf[10][10]={};
+static char test[100]={};
 // #@@range_begin(write_pixel)
 struct PixelColor {
   uint8_t r, g, b;
@@ -68,13 +69,17 @@ void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
   int cursor_row=0;
   int maxColumns=10;//最大列(x)
   int maxRows=10;//最大行(y)
+  int n=0;
   //char buf[maxRows][maxColumns+1];
   for(*s;*s!='\0';s++){//入力の終端までループ
     if(*s=='\n'||cursor_column==maxColumns){//改行文字か端まで行ったら
-      if(cursor_row < maxRows){//最大列でなければ改行
-        cursor_column=0;
-        cursor_row++;
-      }//else{//最大列までいった場合スクロール
+      //WriteString(frame_buffer_conf,0,0,buf[0],{0,0,0});
+      //WriteAscii(frame_buffer_conf,0,0,buf[0][11],{0,0,0});
+       if(cursor_row < maxRows){//最大列でなければ改行
+        buf[cursor_row][cursor_column]='\0';
+         cursor_column=0;
+         cursor_row++;
+       }//else{//最大列までいった場合スクロール
       //   cursor_row=0;
       //   for(int row=0 ; row<1;row++){
       //     cursor_column=0;
@@ -87,6 +92,8 @@ void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
     
     //端までいかなければカーソルを進める
     //WriteAscii(frame_buffer_conf,8*cursor_column,16*cursor_row,*s,{0,0,0});
+    //test[n]='0'+cursor_row;
+    n++;
     buf[cursor_row][cursor_column]=*s;
     cursor_column++;
   }
@@ -105,13 +112,10 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
     }
   }
   int i=0;
-  PutString("1234567891\n afga\nasdtga\n 123\n 456\n 789\n 101112\n 131415\n 161718\n 192021\n 222324\n 242526 ",frame_buffer_config);
-  WriteAscii(frame_buffer_config,8*10,16*10,buf[0][3],{0,0,0});
-  //const char* test="Hello";
-  WriteString(frame_buffer_config,0,0,"hello",{0,0,0});
-  // for (char c = '!';c < '~';c++,i++){
-  //   WriteAscii(frame_buffer_config,8*i,50,c,{0,0,0});
-  // }
+  PutString("aasdd\n afga\nasdtga\n gfhjhk\n fdhj\n dfgs\n adfg\n adfha\n adfha",frame_buffer_config);
+        for(int row=0 ; row<10;row++){
+          WriteString(frame_buffer_config,0,row,buf[row],{0,0,0});
+        }
   while (1) __asm__("hlt");
 }
 // #@@range_end(call_write_pixel)
