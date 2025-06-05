@@ -16,6 +16,37 @@ struct PixelColor {
   uint8_t r, g, b;
 };
 
+// #@@range_begin(mosue_cursor_shape)
+const int kMouseCursorWidth = 15;
+const int kMouseCursorHeight = 24;
+const char mouse_cursor_shape[kMouseCursorHeight][kMouseCursorWidth + 1] = {
+  "@              ",
+  "@@             ",
+  "@.@            ",
+  "@..@           ",
+  "@...@          ",
+  "@....@         ",
+  "@.....@        ",
+  "@......@       ",
+  "@.......@      ",
+  "@........@     ",
+  "@.........@    ",
+  "@..........@   ",
+  "@...........@  ",
+  "@............@ ",
+  "@......@@@@@@@@",
+  "@......@       ",
+  "@....@@.@      ",
+  "@...@ @.@      ",
+  "@..@   @.@     ",
+  "@.@    @.@     ",
+  "@@      @.@    ",
+  "@       @.@    ",
+  "         @.@   ",
+  "         @@@   ",
+};
+// #@@range_end(mosue_cursor_shape)
+
 /** WritePixelは1つの点を描画します．
  * @retval 0   成功
  * @retval 非0 失敗
@@ -96,6 +127,19 @@ void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
     s++;
 }
 }
+
+void WriteMouse(const FrameBufferConfig& config,int x, int y){
+  for(int dy=0;dy<=kMouseCursorHeight;dy++){
+    for(int dx=0;dx<=kMouseCursorWidth;dx++){
+      if(mouse_cursor_shape[dy][dx]=='@'){
+        WritePixel(config, x+dx, y+dy, {0, 0, 0});
+      }else if(mouse_cursor_shape[dy][dx]=='.'){
+        WritePixel(config, x+dx, y+dy, {255, 255, 255});
+      }
+    }
+  }
+}
+
 // #@@range_begin(call_write_pixel)
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   for (int x = 0; x < frame_buffer_config.horizontal_resolution; ++x) {
@@ -110,6 +154,7 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   }
   int i=0;
   PutString("1aasdd\n 2afga\n 3asdtga\n 4gfhjhk\n 5fdhj\n 6dfgs\n 7adfg\n 8adfha\n 9adfha\n 10sdagag\n 11dfgaf\n 12dfga",frame_buffer_config);
+  WriteMouse(frame_buffer_config,200,100);
   while (1) __asm__("hlt");
 }
 // #@@range_end(call_write_pixel)
