@@ -6,10 +6,12 @@
 
 #include <cstdint>
 #include <cstddef>
-
+#include <cstdio>
 #include "frame_buffer_config.hpp"
 #include "../font.hpp"
-static char buf[11][11]={};
+#include "pci.hpp"
+
+static char buf[31][31]={};
 
 // #@@range_begin(write_pixel)
 struct PixelColor {
@@ -98,8 +100,8 @@ void WriteString(const FrameBufferConfig& config,int x, int y,const char* s,cons
 void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
   int cursor_column=0;
   int cursor_row=0;
-  int maxColumns=10;//最大列(x)
-  int maxRows=10;//最大行(y)
+  int maxColumns=30;//最大列(x)
+  int maxRows=30;//最大行(y)
 
   //char buf[maxRows][maxColumns+1];
   while(*s!='\0'){
@@ -117,7 +119,7 @@ void PutString(const char* s,const FrameBufferConfig& frame_buffer_conf){
     if(cursor_row > maxRows){//最大列までいった場合スクロール
     for (int y = 0; y < 16 * maxRows; ++y) {//一度画面をフラッシュ
       for (int x = 0; x < 8 * maxColumns; ++x) {
-        WritePixel(frame_buffer_conf, x, y, {255, 0, 0});
+        WritePixel(frame_buffer_conf, x, y, {0, 0, 255});
       }
     }
     for(int i=0;i<=maxRows;i++){//再描画
@@ -139,12 +141,35 @@ void WriteMouse(const FrameBufferConfig& config,int x, int y){
     }
   }
 }
+void ShowPciDeviceInfo(const FrameBufferConfig& config, int x, int y, const pci::Device& dev) {
+  uint16_t vendor_id = pci::ReadVendorId(dev.bus, dev.device, dev.function);
+  uint32_t class_code = pci::ReadClassCode(dev.bus, dev.device, dev.function);
+  char buf[128];
 
+  sprintf(buf, "%02x.%02x.%x: vend %04x, class %06x, head %02x\n",
+          dev.bus, dev.device, dev.function,
+          vendor_id, class_code >> 8, dev.header_type);
+
+  WriteString(config, x, y, buf, {255, 255, 255});  // 白色で出力（適宜調整）
+}
+
+// int printk(const char* format, const FrameBufferConfig& frame_buffer_config,...) {
+//   va_list ap;
+//   int result;
+//   char s[1024];
+
+//   va_start(ap, format);
+//   result = vsprintf(s, format, ap);
+//   va_end(ap);
+
+//   PutString(s,config);
+//   return result;
+// }
 // #@@range_begin(call_write_pixel)
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
   for (int x = 0; x < frame_buffer_config.horizontal_resolution; ++x) {
     for (int y = 0; y < frame_buffer_config.vertical_resolution; ++y) {
-      WritePixel(frame_buffer_config, x, y, {255, 0, 0});
+      WritePixel(frame_buffer_config, x, y, {0, 0, 255});
     }
   }
   for (int x = 0; x < 200; ++x) {
@@ -153,8 +178,24 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config) {
     }
   }
   int i=0;
-  PutString("1aasdd\n 2afga\n 3asdtga\n 4gfhjhk\n 5fdhj\n 6dfgs\n 7adfg\n 8adfha\n 9adfha\n 10sdagag\n 11dfgaf\n 12dfga",frame_buffer_config);
+  //PutString("1aasdd\n 2afga\n 3asdtga\n 4gfhjhk\n 5fdhj\n 6dfgs\n 7adfg\n 8adfha\n 9adfha\n 10sdagag\n 11dfgaf\n 12dfga",frame_buffer_config);
   WriteMouse(frame_buffer_config,200,100);
+
+  auto err = pci::ScanAllBus();
+  //printk("ScanAllBus: %s\n",frame_buffer_config, err.Name());
+
+  for (int i = 0; i < pci::num_device; ++i) {
+    const auto& dev = pci::devices[i];
+    auto vendor_id = pci::ReadVendorId(dev.bus, dev.device, dev.function);
+    auto class_code = pci::ReadClassCode(dev.bus, dev.device, dev.function);
+  char buf[128];
+  sprintf(buf, "%02x.%02x.%x: vend %04x, class %08x, head %02x",
+          dev.bus, dev.device, dev.function,
+          vendor_id, class_code, dev.header_type);
+
+  WriteString(frame_buffer_config, 0, i + 2, buf, {255, 255, 255});
+  }
+  // #@@range_end(show_devices)
   while (1) __asm__("hlt");
 }
 // #@@range_end(call_write_pixel)
