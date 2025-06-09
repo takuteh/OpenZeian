@@ -1,8 +1,10 @@
-# 本コミットについて (osbook_day06a)
+# 本コミットについて (osbook_day06b)
 
 ## 概要
 
-マウスの描画をした．バイナリにしようと考えたが，矢印のフォントを作るのにスペースが必要なため断念して main.cpp に直接組み込むことにした．
+newlib_support を導入して sprintf を利用できるようにした.(osbook_day05d)  
+マウスを動かせるようにするためにまずは PCI デバイスを探索し，その一覧を表示できるようにした．(osbook_day06b)  
+本コミットは実装が高度な内容であったため,mikanos からほとんどそのまま持ってきている．printk のみうまく動作しなかったので PutString で文字列の表示を行っている．
 
 ## 手順
 
@@ -12,9 +14,10 @@
 ```
 g++ -c font.cpp -o font.o
 g++ -fno-stack-protector -c main.cpp -o main.o -I../ZeianLoaderPkg/include/
+g++ -c -o newlib_support.o newlib_support.c
 ```
 
-2.makefile で`font.o`,`hankaku.o`,`main.o`をリンクしてコンパイル
+2.makefile で`font.o`,`hankaku.o`,`main.o`,`newlib_support.o`をリンクしてコンパイル
 
 3.edk2 以下に移動し，ビルド後実行
 
